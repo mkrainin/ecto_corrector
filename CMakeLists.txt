@@ -20,5 +20,6 @@ ecto_python_env_gen(${CMAKE_BINARY_DIR}/lib)
 include_directories(${sensor_msgs_INCLUDES})
 include_directories(${geometry_msgs_INCLUDES})
 include_directories(${pose_corrector_INCLUDES})
+include_directories(${ecto_pcl_INCLUDES})
 
 add_subdirectory(src)

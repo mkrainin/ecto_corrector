@@ -35,14 +35,14 @@ namespace ecto_corrector
 
     void configure(tendrils& params, tendrils& /*in*/, tendrils& /*out*/)
     {
-      ply=params.at("ply");
-      x=params.at("x");
-      y=params.at("y");
-      z=params.at("z");
-      qx=params.at("qx");
-      qy=params.at("qy");
-      qz=params.at("qz");
-      qw=params.at("qw");
+      ply=params["ply"];
+      x=params["x"];
+      y=params["y"];
+      z=params["z"];
+      qx=params["qx"];
+      qy=params["qy"];
+      qz=params["qz"];
+      qw=params["qw"];
     }
 
     int process(const tendrils& in, tendrils& out)
@@ -50,15 +50,15 @@ namespace ecto_corrector
       geometry_msgs::PoseStamped pose;
       pose.header.stamp = ros::Time::now();
       pose.header.frame_id = "/object";
-      pose.pose.position.x = x.read();
-      pose.pose.position.y = y.read();
-      pose.pose.position.z = z.read();
-      pose.pose.orientation.x = qx.read();
-      pose.pose.orientation.y = qy.read();
-      pose.pose.orientation.z = qz.read();
-      pose.pose.orientation.w = qw.read();
+      pose.pose.position.x = *x;
+      pose.pose.position.y = *y;
+      pose.pose.position.z = *z;
+      pose.pose.orientation.x = *qx;
+      pose.pose.orientation.y = *qy;
+      pose.pose.orientation.z = *qz;
+      pose.pose.orientation.w = *qw;
 
-      out.get<std::string>("ply_file") = ply.read();
+      out.get<std::string>("ply_file") = *ply;
       out.get<geometry_msgs::PoseStamped>("output_pose") = pose;
 
       return ecto::OK;
