@@ -4,8 +4,7 @@ ectomodule(ecto_corrector
   ecto_corrector.cpp
   Corrector.cpp
   DetectionSimulator.cpp
-  DepthEdgeDetector.cpp
-  CameraInfoSender.cpp)
+  DepthEdgeDetector.cpp)
 link_ecto(ecto_corrector
   ${sensor_msgs_LIBRARIES}
   ${geometry_msgs_LIBRARIES}
