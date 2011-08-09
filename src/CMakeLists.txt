@@ -2,7 +2,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 ectomodule(ecto_corrector 
   ecto_corrector.cpp
-  Corrector.cpp
+  FullCorrector.cpp
   DetectionSimulator.cpp
   DepthEdgeDetector.cpp)
 link_ecto(ecto_corrector

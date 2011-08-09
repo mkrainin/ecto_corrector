@@ -19,7 +19,7 @@ if __name__ == "__main__":
     sub_rgb = ImageSub("image sub",topic_name="/camera/rgb/image_color")
     sub_cloud = Cloud2Sub("cloud sub",topic_name="/camera/rgb/points")
     sub_info = InfoSub("info sub",topic_name="/camera/rgb/camera_info")
-    corrector = ecto_corrector.Corrector("Corrector")
+    corrector = ecto_corrector.FullCorrector("Corrector")
     
     graph = [
                     sub_rgb[:] >> corrector["image_color"],

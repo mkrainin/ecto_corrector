@@ -1,5 +1,5 @@
 /*
- * Corrector.cpp
+ * FullCorrector.cpp
  *
  *  Created on: Jul 19, 2011
  *      Author: mkrainin
@@ -19,7 +19,7 @@ namespace ecto_corrector
 {
   using ecto::tendrils;
 
-  struct Corrector
+  struct FullCorrector
   {
   public:
     static void declare_params(tendrils& params)
@@ -61,7 +61,7 @@ namespace ecto_corrector
       corrector.setModel(model);
       corrector.setModelBasePose(init_pose);
       corrector.initCamera(in.get<sensor_msgs::CameraInfoConstPtr>("camera_info"));
-
+      corrector.updateROI();
       corrector.correct(in.get<sensor_msgs::ImageConstPtr>("image_color"),
                         in.get<sensor_msgs::PointCloud2ConstPtr>("cloud"));
 
@@ -78,4 +78,4 @@ namespace ecto_corrector
     pose_corrector::OptimizerG2OParams opt_params;
   };
 } //namespace
-ECTO_CELL(ecto_corrector, ecto_corrector::Corrector, "Corrector", "Performs pose refinement for rigid objects");
+ECTO_CELL(ecto_corrector, ecto_corrector::FullCorrector, "Corrector", "Performs pose refinement for rigid objects. Performs the full process including cloud conversion, depth edges, ROI computation, etc.");
