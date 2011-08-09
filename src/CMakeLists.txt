@@ -7,6 +7,7 @@ ectomodule(ecto_corrector
   DepthEdgeDetector.cpp
   DetectionSimulator.cpp
   ModelLoader.cpp
+  ModelROI.cpp
   )
 link_ecto(ecto_corrector
   ${sensor_msgs_LIBRARIES}
