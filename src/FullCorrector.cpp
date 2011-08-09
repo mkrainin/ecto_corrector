@@ -78,4 +78,4 @@ namespace ecto_corrector
     pose_corrector::OptimizerG2OParams opt_params;
   };
 } //namespace
-ECTO_CELL(ecto_corrector, ecto_corrector::FullCorrector, "Corrector", "Performs pose refinement for rigid objects. Performs the full process including cloud conversion, depth edges, ROI computation, etc.");
+ECTO_CELL(ecto_corrector, ecto_corrector::FullCorrector, "FullCorrector", "Performs pose refinement for rigid objects. Performs the full process including cloud conversion, depth edges, ROI computation, etc.");
