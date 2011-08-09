@@ -11,8 +11,9 @@ if(NOT pose_corrector_FOUND)
   message("**\n** Disabling build of ${PROJECT_NAME} due to missing dependency pose_corrector\n**")
   return()
 endif()
-find_ros_package(sensor_msgs)
-find_ros_package(geometry_msgs)
+find_ros_package(sensor_msgs REQUIRED)
+find_ros_package(geometry_msgs REQUIRED)
+find_ros_package(tabletop_object_detector REQUIRED)  #for TODServiceCaller. can be removed once there's an ecto_tod
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 ecto_python_env_gen(${CMAKE_BINARY_DIR}/lib)
@@ -20,5 +21,6 @@ ecto_python_env_gen(${CMAKE_BINARY_DIR}/lib)
 include_directories(${sensor_msgs_INCLUDES})
 include_directories(${geometry_msgs_INCLUDES})
 include_directories(${pose_corrector_INCLUDES})
+include_directories(${tabletop_object_detector_INCLUDES})
 
 add_subdirectory(src)

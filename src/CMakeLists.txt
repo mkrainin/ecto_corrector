@@ -8,9 +8,11 @@ ectomodule(ecto_corrector
   DetectionSimulator.cpp
   ModelLoader.cpp
   ModelROI.cpp
+  TODServiceCaller.cpp
   )
 link_ecto(ecto_corrector
   ${sensor_msgs_LIBRARIES}
   ${geometry_msgs_LIBRARIES}
   ${pose_corrector_LIBRARIES}
+  ${tabletop_object_detector_LIBRARIES}
   )
