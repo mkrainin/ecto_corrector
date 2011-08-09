@@ -18,7 +18,6 @@ namespace ecto_corrector
   public:
     static void declare_params(tendrils& params)
     {
-      //TODO
     }
 
     static void declare_io(const tendrils& /*params*/, tendrils& in, tendrils& out)
@@ -32,18 +31,29 @@ namespace ecto_corrector
           "model", "Model for the input ply");
     }
 
-    void configure(tendrils& params, tendrils& /*in*/, tendrils& /*out*/)
+    void configure(tendrils& params, tendrils& in, tendrils& out)
     {
-      //TODO
+      ply_file_ = in["ply_file"];
+      out_model_ = out["model"];
     }
 
     int process(const tendrils& in, tendrils& out)
     {
-      //TODO
+      if(models_.find(*ply_file_) == models_.end()){
+        boost::shared_ptr<pose_corrector::RigidObjectModel> model(
+            new pose_corrector::RigidObjectModel(*ply_file_));
+        models_[*ply_file_] = model;
+      }
+
+      *out_model_ = models_[*ply_file_];
       return ecto::OK;
     }
 
   private:
+    ecto::spore<std::string> ply_file_;
+    ecto::spore<boost::shared_ptr<pose_corrector::RigidObjectModel> > out_model_;
+
+    std::map<std::string,boost::shared_ptr<pose_corrector::RigidObjectModel> > models_;
 
   };
 } //namespace
