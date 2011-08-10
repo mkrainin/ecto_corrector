@@ -26,13 +26,13 @@ namespace ecto_corrector
       //inputs
       in.declare<sensor_msgs::CameraInfoConstPtr>(
           "in_camera_info", "Camera info before ROI");
-      in.declare<boost::shared_ptr<const pose_corrector::RigidObjectModel> >(
+      in.declare<boost::shared_ptr<pose_corrector::RigidObjectModel> >(
           "model", "Model for the input ply");
       in.declare<geometry_msgs::PoseStamped>(
           "pose", "Estimated pose of the object");
 
       //outputs
-      out.declare<sensor_msgs::CameraInfoPtr>(
+      out.declare<sensor_msgs::CameraInfoConstPtr>(
           "out_camera_info", "Camera info with appropriate ROI");
     }
 
@@ -58,9 +58,10 @@ namespace ecto_corrector
 
       sensor_msgs::RegionOfInterest roi = (*model_)->getCameraROI(cam,tf_pose,*expansion_);
 
-      *out_info_ = sensor_msgs::CameraInfoPtr(new sensor_msgs::CameraInfo());
-      **out_info_ = **in_info_;
-      (*out_info_)->roi = roi;
+      sensor_msgs::CameraInfoPtr new_info(new sensor_msgs::CameraInfo());
+      *new_info = **in_info_;
+      new_info->roi = roi;
+      *out_info_ = new_info;
 
 
       return ecto::OK;
@@ -69,11 +70,11 @@ namespace ecto_corrector
   private:
     //inputs
     ecto::spore<sensor_msgs::CameraInfoConstPtr> in_info_;
-    ecto::spore<boost::shared_ptr<const pose_corrector::RigidObjectModel> > model_;
+    ecto::spore<boost::shared_ptr<pose_corrector::RigidObjectModel> > model_;
     ecto::spore<geometry_msgs::PoseStamped> pose_;
 
     //outputs
-    ecto::spore<sensor_msgs::CameraInfoPtr> out_info_;
+    ecto::spore<sensor_msgs::CameraInfoConstPtr> out_info_;
 
     //params
     ecto::spore<int> expansion_;

@@ -31,7 +31,7 @@ namespace ecto_corrector
       //inputs
       in.declare<geometry_msgs::PoseStamped>(
           "input_pose", "Initial object pose estimate");
-      in.declare<boost::shared_ptr<const pose_corrector::RigidObjectModel> >(
+      in.declare<boost::shared_ptr<pose_corrector::RigidObjectModel> >(
           "model", "Model of object");
       in.declare<sensor_msgs::CameraInfoConstPtr>(
           "camera_info", "Camera info for rgb camera (including any ROI info)");
@@ -56,6 +56,9 @@ namespace ecto_corrector
 
       //outputs
       out_pose_ = out["output_pose"];
+
+      //params
+
     }
 
     int process(const tendrils& in, tendrils& out)
@@ -66,9 +69,11 @@ namespace ecto_corrector
 
       //set up and run corrector
       pose_corrector::Corrector corrector;
+      (*model_)->setBasePose(init_pose);
       corrector.setModel(*model_);
-      corrector.setModelBasePose(init_pose);
       corrector.initCamera(*cam_info_);
+
+      corrector.setParams(params_);
 
       //put the cloud in the right format
       pcl::PointCloud<PointT> const& cloud_in = **cloud_;
@@ -91,7 +96,7 @@ namespace ecto_corrector
 
       //set output pose
       out_pose_->header = in_pose_->header;
-      tf::poseTFToMsg(corrector.getModelBasePose(),out_pose_->pose);
+      tf::poseTFToMsg((*model_)->getBasePose(),out_pose_->pose);
 
       return ecto::OK;
     }
@@ -106,6 +111,9 @@ namespace ecto_corrector
 
     //outputs
     ecto::spore<geometry_msgs::PoseStamped> out_pose_;
+
+    //params
+    pose_corrector::CorrectorParams params_;
 
   };
 } //namespace

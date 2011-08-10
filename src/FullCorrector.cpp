@@ -58,8 +58,8 @@ namespace ecto_corrector
       pose_corrector::Corrector corrector;
       boost::shared_ptr<pose_corrector::BaseModel> model(
           new pose_corrector::RigidObjectModel(in.get<std::string>("ply_file")));
+      model->setBasePose(init_pose);
       corrector.setModel(model);
-      corrector.setModelBasePose(init_pose);
       corrector.initCamera(in.get<sensor_msgs::CameraInfoConstPtr>("camera_info"));
       corrector.updateROI();
       corrector.correct(in.get<sensor_msgs::ImageConstPtr>("image_color"),
@@ -67,7 +67,7 @@ namespace ecto_corrector
 
       geometry_msgs::PoseStamped final_pose;
       final_pose.header = in.get<geometry_msgs::PoseStamped>("input_pose").header;
-      tf::poseTFToMsg(corrector.getModelBasePose(),final_pose.pose);
+      tf::poseTFToMsg(model->getBasePose(),final_pose.pose);
 
       out.get<geometry_msgs::PoseStamped>("output_pose") = final_pose;
 
