@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# test of the monolithic corrector (for now just on a fake detection)
 
 import ecto
 import ecto_ros, ecto_sensor_msgs
@@ -11,7 +12,7 @@ Cloud2Sub = ecto_sensor_msgs.Subscriber_PointCloud2
 InfoSub = ecto_sensor_msgs.Subscriber_CameraInfo
 
 if __name__ == "__main__":
-    ecto_ros.init(sys.argv, "corrector_test")
+    ecto_ros.init(sys.argv, "full_corrector_test")
 
     ply_file = "/u/mkrainin/object_data/coke_can_scaled.ply"
     fake_detection = ecto_corrector.DetectionSimulator("Fake Detection", 
