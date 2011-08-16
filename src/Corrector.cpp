@@ -88,10 +88,14 @@ namespace ecto_corrector
       tf::Transform init_pose;
       tf::poseMsgToTF(in_pose_->pose,init_pose);
 
+      //copy the model so there are no issues with others trying to set pose
+      boost::shared_ptr<pose_corrector::RigidObjectModel> model(new pose_corrector::RigidObjectModel());
+      *model = **model_;
+
       //set up and run corrector
       pose_corrector::Corrector corrector;
-      (*model_)->setBasePose(init_pose);
-      corrector.setModel(*model_);
+      model->setBasePose(init_pose);
+      corrector.setModel(model);
       corrector.initCamera(*cam_info_);
 
       pose_corrector::CorrectorParams params;
@@ -126,7 +130,7 @@ namespace ecto_corrector
 
       //set output pose
       out_pose_->header = in_pose_->header;
-      tf::poseTFToMsg((*model_)->getBasePose(),out_pose_->pose);
+      tf::poseTFToMsg(model->getBasePose(),out_pose_->pose);
 
       return ecto::OK;
     }

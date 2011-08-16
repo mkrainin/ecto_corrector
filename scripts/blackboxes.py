@@ -6,7 +6,7 @@ import ecto_corrector
 dir = "/wg/stor2a/mkrainin/object_data/perception challenge/object_meshes"
 
 class InputsModule(ecto.BlackBox):
-    def __init__(self,plasm):
+    def __init__(self,plasm,rot_noise=0,trans_noise=0):
         ecto.BlackBox.__init__(self, plasm)
         
         #subscribers
@@ -19,6 +19,9 @@ class InputsModule(ecto.BlackBox):
         
         #object detection
         self.tod_detector = ecto_corrector.TODServiceCaller("TOD",ply_dir=dir)
+        
+        #artificial noise
+        self.noise_adder = ecto_corrector.AddNoise("Noise Adder",rotation=rot_noise,translation=trans_noise)
     
         #edge detection
         self.edge_detector = ecto_corrector.DepthEdgeDetectorXYZ("Edge Detector",depth_threshold=0.02, \
@@ -36,7 +39,7 @@ class InputsModule(ecto.BlackBox):
         
     def expose_outputs(self):
         return {
-                 "pose":self.tod_detector["pose"],
+                 "pose":self.noise_adder["out_pose"],
                  "model":self.model_loader["model"],
                  "info":self.roi["out_camera_info"],
                  "depth_edges":self.edge_detector["depth_edges"],
@@ -56,8 +59,12 @@ class InputsModule(ecto.BlackBox):
             #model loading
             self.tod_detector["ply_file"]>> self.model_loader[:],
             
+            #artificial noise
+            self.tod_detector["pose"]   >> self.noise_adder["in_pose"],
+            self.model_loader[:]        >> self.noise_adder["model"],
+            
             #region of interest
-            self.tod_detector["pose"]    >> self.roi["pose"],
+            self.noise_adder["out_pose"] >> self.roi["pose"],
             self.model_loader[:]         >> self.roi["model"],
             self.sub_info[:]             >> self.roi["in_camera_info"],
         
