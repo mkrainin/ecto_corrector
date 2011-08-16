@@ -77,7 +77,7 @@ namespace ecto_corrector
 
       //put the cloud in the right format
       pcl::PointCloud<PointT> const& cloud_in = **cloud_;
-      pcl::PointCloud<pcl::PointNormal> cloud;
+      pcl::PointCloud<pcl::PointXYZ> cloud;
       // Allocate enough space and copy the basics
       cloud.points.resize (cloud_in.points.size ());
       cloud.header   = cloud_in.header;
