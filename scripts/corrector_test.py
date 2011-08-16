@@ -3,69 +3,54 @@
 
 import ecto, ecto_ros, ecto_pcl, ecto_pcl_ros, ecto_sensor_msgs, ecto_opencv.highgui
 import ecto_corrector
+from blackboxes import *
 
 import sys
 
 debug = True
-dir = "/wg/stor2a/mkrainin/object_data/perception challenge/object_meshes"
 
 if __name__ == "__main__":
-    ecto_ros.init(sys.argv, "depth_edge_test")
+    node_name = "corrector_test"
+    ecto_ros.init(sys.argv, node_name,False)
     
-    #subscribers
-    sub_cloud = ecto_sensor_msgs.Subscriber_PointCloud2("Cloud2 Subscriber",topic_name="/camera/rgb/points")
-    sub_info = ecto_sensor_msgs.Subscriber_CameraInfo("Cam Info Subscriber",topic_name="/camera/rgb/camera_info")
+    plasm = ecto.Plasm()
     
-    #converters (PointCloud2 -> type erased PointCloud -> PointCloud<PointXYZ>)
-    msg2cloud = ecto_pcl_ros.Message2PointCloud("Cloud2 To Type-Erased",format=ecto_pcl.XYZ)
-    cloud2typed = ecto_pcl.PointCloud2PointCloudT("Type-Erased To XYZ",format=ecto_pcl.XYZ)
-    
-    #object detection
-    tod_detector = ecto_corrector.TODServiceCaller("TOD",ply_dir=dir)
-
-    #edge detection
-    edge_detector = ecto_corrector.DepthEdgeDetectorXYZ("Edge Detector",depth_threshold=0.02, \
-          erode_size=3,open_size=3)
-    
-    #model loading
-    model_loader = ecto_corrector.ModelLoader("Model Loader")
-    
-    #region of interest
-    roi = ecto_corrector.ModelROI("ROI",expansion=40)
+    #inputs
+    inputs = InputsModule(plasm)
     
     #pose correction
     corrector = ecto_corrector.CorrectorXYZ("Corrector")  #TODO: params
     
-    graph = [
-        #conversion    
-        sub_cloud[:]            >> msg2cloud[:],
-        msg2cloud[:]            >> cloud2typed[:],
-        
-        #model loading
-        tod_detector["ply_file"]>> model_loader[:],
-        
-        #region of interest
-        tod_detector["pose"]    >> roi["pose"],
-        model_loader[:]         >> roi["model"],
-        sub_info[:]             >> roi["in_camera_info"],
+    #display
+    pre_correct_vertices = VerticesPubModule(plasm,node_name+"/pre_correct")
+    post_correct_vertices = VerticesPubModule(plasm,node_name+"/post_correct")
     
-        #edge detection
-        cloud2typed[:]          >> edge_detector["cloud"],
-        roi[:]                  >> edge_detector["cam_info"],
-        
+    graph = [
+        #pre-correct visualization
+        inputs["pose"]          >> pre_correct_vertices["pose"],
+        inputs["model"]         >> pre_correct_vertices["model"],
+             
         #correction
-        tod_detector["pose"]    >> corrector["input_pose"],
-        model_loader[:]         >> corrector["model"],
-        roi[:]                  >> corrector["camera_info"],
-        edge_detector[:]        >> corrector["depth_edges"],
-        cloud2typed[:]          >> corrector["cloud"],          
+        inputs["pose"]          >> corrector["input_pose"],
+        inputs["model"]         >> corrector["model"],
+        inputs["info"]          >> corrector["camera_info"],
+        inputs["depth_edges"]   >> corrector["depth_edges"],
+        inputs["cloud"]         >> corrector["cloud"],         
+        
+        #pose-correct visualization
+        corrector["output_pose"]>> post_correct_vertices["pose"],
+        inputs["model"]         >> post_correct_vertices["model"],
     ]
 
-    plasm = ecto.Plasm()
     plasm.connect(graph)
     
     if(debug):
         ecto.view_plasm(plasm)
     
     sched = ecto.schedulers.Threadpool(plasm)
-    sched.execute()   
+    
+    print "Press enter to run once. 'q' to quit"
+    while(raw_input() != 'q'):
+        print "Running Once"
+        sched.execute(1)   
+        print "Done. Press enter to run again. 'q' to quit"
