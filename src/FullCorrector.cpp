@@ -44,12 +44,12 @@ namespace ecto_corrector
           "output_pose", "Refined object pose estimate");
     }
 
-    void configure(tendrils& params, tendrils& /*in*/, tendrils& /*out*/)
+    void configure(const tendrils& params, const tendrils& /*in*/, const tendrils& /*out*/)
     {
       //TODO: copy out params/update structures
     }
 
-    int process(const tendrils& in, tendrils& out)
+    int process(const tendrils& in, const tendrils& out)
     {
       tf::Transform init_pose;
       tf::poseMsgToTF(in.get<geometry_msgs::PoseStamped>("input_pose").pose,init_pose);

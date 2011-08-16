@@ -36,7 +36,7 @@ namespace ecto_corrector
           "out_camera_info", "Camera info with appropriate ROI");
     }
 
-    void configure(tendrils& params, tendrils& in, tendrils& out)
+    void configure(const tendrils& params, const tendrils& in, const tendrils& out)
     {
       //inputs
       in_info_ = in["in_camera_info"];
@@ -50,7 +50,7 @@ namespace ecto_corrector
       expansion_ = params["expansion"];
     }
 
-    int process(const tendrils& in, tendrils& out)
+    int process(const tendrils& in, const tendrils& out)
     {
       tf::Transform tf_pose;
       tf::poseMsgToTF(pose_->pose,tf_pose);

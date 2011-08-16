@@ -30,7 +30,7 @@ namespace ecto_corrector
       out.declare<geometry_msgs::PoseStamped>("pose");
     }
 
-    void configure(tendrils& params, tendrils& in, tendrils& out)
+    void configure(const tendrils& params, const tendrils& in, const tendrils& out)
     {
       //ros stuff
       tod_service_ = nh_.serviceClient<tabletop_object_detector::TabletopDetection>("/tod");
@@ -43,7 +43,7 @@ namespace ecto_corrector
       pose_ = out["pose"];
     }
 
-    int process(const tendrils& in, tendrils& out)
+    int process(const tendrils& in, const tendrils& out)
     {
       //call tod
       tabletop_object_detector::TabletopDetection srv;

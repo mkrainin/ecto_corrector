@@ -31,13 +31,13 @@ namespace ecto_corrector
           "model", "Model for the input ply");
     }
 
-    void configure(tendrils& params, tendrils& in, tendrils& out)
+    void configure(const tendrils& params, const tendrils& in, const tendrils& out)
     {
       ply_file_ = in["ply_file"];
       out_model_ = out["model"];
     }
 
-    int process(const tendrils& in, tendrils& out)
+    int process(const tendrils& in, const tendrils& out)
     {
       if(models_.find(*ply_file_) == models_.end()){
         boost::shared_ptr<pose_corrector::RigidObjectModel> model(

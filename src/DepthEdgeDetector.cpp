@@ -34,7 +34,7 @@ struct DepthEdgeDetector
     outputs.declare<cv::Mat> ("depth_edges", "Image depicting depth discontinuities");
   }
 
-  void configure(ecto::tendrils& params, ecto::tendrils& inputs, ecto::tendrils& outputs)
+  void configure(const ecto::tendrils& params, const ecto::tendrils& inputs, const ecto::tendrils& outputs)
   {
     //params
     depth_threshold_ = params["depth_threshold"];
@@ -49,7 +49,7 @@ struct DepthEdgeDetector
     output_ = outputs["depth_edges"];
   }
 
-  int process(const ecto::tendrils& inputs, ecto::tendrils& outputs)
+  int process(const ecto::tendrils& inputs, const ecto::tendrils& outputs)
   {
     pose_corrector::Camera camera(*info_,false);
     pose_corrector::computeDepthEdges(**cloud_,camera,*output_,*depth_threshold_,*erode_size_,*open_size_);

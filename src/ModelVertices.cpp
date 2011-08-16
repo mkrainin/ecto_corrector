@@ -30,14 +30,14 @@ namespace ecto_corrector
       out.declare<pcl::PointCloud<pcl::PointXYZ>::Ptr >("cloud");
     }
 
-    void configure(tendrils& params, tendrils& in, tendrils& out)
+    void configure(const tendrils& params, const tendrils& in, const tendrils& out)
     {
       model_ = in["model"];
       pose_ = in["pose"];
       cloud_ = out["cloud"];
     }
 
-    int process(const tendrils& in, tendrils& out)
+    int process(const tendrils& in, const tendrils& out)
     {
       //get cloud
       *cloud_ = (*model_)->getVertexCloud();

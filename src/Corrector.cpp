@@ -23,7 +23,20 @@ namespace ecto_corrector
   public:
     static void declare_params(tendrils& params)
     {
-      //TODO
+      //high level params
+      params.declare<int>("iterations","Outer loop iterations",20);
+      params.declare<int>("inner_loops","Inner loop iterations",20);
+
+      //icp
+      params.declare<bool>("use_icp","Whether to use ICP constraints",false);
+
+      //sensor model
+      params.declare<bool>("use_sensor_model","Whether to use sensor model constraints",true);
+      params.declare<bool>("recompute_uncertainties","Whether to recompute uncertainties for sensor model constraints",true);
+      params.declare<double>("sigma_z","Starting standard deviation for z difference",0.01);
+      params.declare<double>("sigma_pixel","Starting standard deviation for pixel difference",2.0);
+      params.declare<int>("window_half","Half window size for windowed sensor model (0 for non-windowed)",0);
+
     }
 
     static void declare_io(const tendrils& /*params*/, tendrils& in, tendrils& out)
@@ -45,7 +58,7 @@ namespace ecto_corrector
           "output_pose", "Refined object pose estimate");
     }
 
-    void configure(tendrils& params, tendrils& in, tendrils& out)
+    void configure(const tendrils& params, const tendrils& in, const tendrils& out)
     {
       //inputs
       in_pose_ = in["input_pose"];
@@ -58,10 +71,18 @@ namespace ecto_corrector
       out_pose_ = out["output_pose"];
 
       //params
+      iterations_ = params["iterations"];
+      g2o_inner_loops_ = params["inner_loops"];
+      use_icp_ = params["use_icp"];
+      use_sensor_model_ = params["use_sensor_model"];
+      recompute_uncertainties_ = params["recompute_uncertainties"];
+      sigma_z_ = params["sigma_z"];
+      sigma_pixel_ = params["sigma_pixel"];
+      window_half_ = params["window_half"];
 
     }
 
-    int process(const tendrils& in, tendrils& out)
+    int process(const tendrils& in, const tendrils& out)
     {
       //get initial pose
       tf::Transform init_pose;
@@ -73,7 +94,16 @@ namespace ecto_corrector
       corrector.setModel(*model_);
       corrector.initCamera(*cam_info_);
 
-      corrector.setParams(params_);
+      pose_corrector::CorrectorParams params;
+      params.iterations = *iterations_;
+      params.optimizer_params.g2o_iterations = *g2o_inner_loops_;
+      params.optimizer_params.use_icp_constraints = *use_icp_;
+      params.optimizer_params.use_sensor_model_constraints = *use_sensor_model_;
+      params.optimizer_params.sensor_model_recompute_uncertainties = *recompute_uncertainties_;
+      params.optimizer_params.sensor_model_z_st_dev = *sigma_z_;
+      params.optimizer_params.sensor_model_pixel_st_dev = *sigma_pixel_;
+      params.optimizer_params.sensor_model_window_half = *window_half_;
+      corrector.setParams(params);
 
       //put the cloud in the right format
       pcl::PointCloud<PointT> const& cloud_in = **cloud_;
@@ -113,7 +143,9 @@ namespace ecto_corrector
     ecto::spore<geometry_msgs::PoseStamped> out_pose_;
 
     //params
-    pose_corrector::CorrectorParams params_;
+    ecto::spore<int> iterations_, g2o_inner_loops_, window_half_;
+    ecto::spore<bool> use_icp_, use_sensor_model_, recompute_uncertainties_;
+    ecto::spore<double> sigma_z_, sigma_pixel_;
 
   };
 } //namespace

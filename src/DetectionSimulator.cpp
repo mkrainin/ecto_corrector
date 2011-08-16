@@ -33,7 +33,7 @@ namespace ecto_corrector
       out.declare<geometry_msgs::PoseStamped>("output_pose", "Pose estimate");
     }
 
-    void configure(tendrils& params, tendrils& /*in*/, tendrils& /*out*/)
+    void configure(const tendrils& params, const tendrils& /*in*/, const tendrils& /*out*/)
     {
       ply=params["ply"];
       x=params["x"];
@@ -45,7 +45,7 @@ namespace ecto_corrector
       qw=params["qw"];
     }
 
-    int process(const tendrils& in, tendrils& out)
+    int process(const tendrils& in, const tendrils& out)
     {
       geometry_msgs::PoseStamped pose;
       pose.header.stamp = ros::Time::now();
