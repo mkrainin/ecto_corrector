@@ -4,6 +4,7 @@ ectomodule(ecto_corrector
   ecto_corrector.cpp
   Corrector.cpp
   FullCorrector.cpp
+  AddNoise.cpp
   DepthEdgeDetector.cpp
   DetectionSimulator.cpp
   ModelLoader.cpp
