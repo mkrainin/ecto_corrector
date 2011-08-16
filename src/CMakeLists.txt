@@ -8,6 +8,7 @@ ectomodule(ecto_corrector
   DetectionSimulator.cpp
   ModelLoader.cpp
   ModelROI.cpp
+  ModelVertices.cpp
   TODServiceCaller.cpp
   )
 link_ecto(ecto_corrector
