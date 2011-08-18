@@ -11,6 +11,7 @@ ectomodule(ecto_corrector
   ModelROI.cpp
   ModelVertices.cpp
   TODServiceCaller.cpp
+  TranslationOffset.cpp
   )
 link_ecto(ecto_corrector
   ${sensor_msgs_LIBRARIES}
