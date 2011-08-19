@@ -9,7 +9,7 @@ from blackboxes import *
 import sys
 import math
 
-debug = False
+debug = True
 
 if __name__ == "__main__":
     if(len(sys.argv) != 2 or sys.argv[1] == "-h" or sys.argv[1] == "--help"):
@@ -45,13 +45,14 @@ if __name__ == "__main__":
     #visualization
     circle_drawer = calib.PatternDrawer(rows=rows, cols=cols)
     pose_drawer = calib.PoseDrawer()
-    show = highgui.imshow("imshow",waitKey=10)
+    show_triggers = {'c_key':ord('c')}
+    show = highgui.imshow("imshow",waitKey=10,triggers=show_triggers)
     
     #bagging
-    baggers = dict(image=ecto_sensor_msgs.Bagger_Image(topic_name='/image_color'),
-               info=ecto_sensor_msgs.Bagger_CameraInfo(topic_name='/camera_info'),
-               cloud=ecto_sensor_msgs.Bagger_PointCloud2(topic_name="/points"),
-               pose=ecto_geometry_msgs.Bagger_PoseStamped(topic_name="/pose"),
+    baggers = dict(image=ecto_sensor_msgs.Bagger_Image(topic_name='image_color'),
+               info=ecto_sensor_msgs.Bagger_CameraInfo(topic_name='camera_info'),
+               cloud=ecto_sensor_msgs.Bagger_PointCloud2(topic_name="points"),
+               pose=ecto_geometry_msgs.Bagger_PoseStamped(topic_name="pose"),
                )
     bagwriterif = ecto.If('Bag Writer if key',
                         cell=ecto_ros.BagWriter(baggers=baggers, bag=bag_name)
@@ -85,20 +86,13 @@ if __name__ == "__main__":
         #bagging
         sync[sub_keys]       >>  bagwriterif[sub_keys],
         to_pose_stamped["pose"]  >> bagwriterif["pose"],
+        show["c_key"]       >>  bagwriterif["__test__"],
     )
     
     if(debug):
         ecto.view_plasm(plasm)
     
-    sched = ecto.schedulers.Singlethreaded(plasm)
-    quit = sched.execute(1)
-    
     print "press 'c' (in the imshow window) to capture a frame. 'q' to quit."
-    while(not quit):
-        quit = sched.execute(1)
-        bagwriterif.inputs.__test__ = False
-        if(show.outputs.out == ord('c')):
-            print "'c' pressed. recording next frame"
-            show.outputs.out = 0
-            bagwriterif.inputs.__test__ = True
+    sched = ecto.schedulers.Threadpool(plasm)
+    sched.execute()
             
