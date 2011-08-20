@@ -28,6 +28,7 @@ namespace ecto_corrector
     {
       out.declare<std::string>("ply_file");
       out.declare<geometry_msgs::PoseStamped>("pose");
+      out.declare<bool>("success");
     }
 
     void configure(const tendrils& params, const tendrils& in, const tendrils& out)
@@ -41,6 +42,7 @@ namespace ecto_corrector
       //ouputs
       ply_file_ = out["ply_file"];
       pose_ = out["pose"];
+      success_ = out["success"];
     }
 
     int process(const tendrils& in, const tendrils& out)
@@ -50,13 +52,16 @@ namespace ecto_corrector
       srv.request.num_models = 1;
       if(!tod_service_.call(srv)){
         std::cout<<"Calling tod resulted in error"<<std::endl;
-        return ecto::QUIT;
+        *success_ = false;
+        return ecto::OK;
       }
       if(srv.response.detection.result != 4)
       {
         std::cout<<"Tod response "<<srv.response.detection.result<<" not success"<<std::endl;
-        return ecto::QUIT;
+        *success_ = false;
+        return ecto::OK;
       }
+      std::cout<<"TOD call success"<<std::endl;
 
       household_objects_database_msgs::DatabaseModelPose const& detection =
           srv.response.detection.models[0].model_list[0];
@@ -69,6 +74,7 @@ namespace ecto_corrector
       //get the object pose
       *pose_ = detection.pose;
 
+      *success_ = true;
       return ecto::OK;
     }
 
@@ -80,6 +86,7 @@ namespace ecto_corrector
     //outputs
     ecto::spore<std::string> ply_file_;
     ecto::spore<geometry_msgs::PoseStamped> pose_;
+    ecto::spore<bool> success_;
 
     //params
     std::string ply_dir_;
