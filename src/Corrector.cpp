@@ -96,7 +96,7 @@ namespace ecto_corrector
       pose_corrector::Corrector corrector;
       model->setBasePose(init_pose);
       corrector.setModel(model);
-      corrector.initCamera(*cam_info_);
+      corrector.initCamera(*cam_info_,(*cloud_)->width);
 
       pose_corrector::CorrectorParams params;
       params.iterations = *iterations_;

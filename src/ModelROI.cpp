@@ -19,6 +19,7 @@ namespace ecto_corrector
     static void declare_params(tendrils& params)
     {
       params.declare<int>("expansion","Number of pixels to expand ROI in each direction");
+      params.declare<int>("binning","Binning to use in output camera pose",1);
     }
 
     static void declare_io(const tendrils& /*params*/, tendrils& in, tendrils& out)
@@ -48,6 +49,7 @@ namespace ecto_corrector
 
       //params
       expansion_ = params["expansion"];
+      binning_ = params["binning"];
     }
 
     int process(const tendrils& in, const tendrils& out)
@@ -61,9 +63,13 @@ namespace ecto_corrector
       sensor_msgs::CameraInfoPtr new_info(new sensor_msgs::CameraInfo());
       *new_info = **in_info_;
       new_info->roi = roi;
-      *out_info_ = new_info;
+      new_info->binning_x = *binning_;
+      new_info->binning_y = *binning_;
 
+      //pass through Camera to resolve any alignment issues caused by the binning
+      pose_corrector::Camera binned_camera(new_info);
 
+      *out_info_ = binned_camera.getCameraInfo();
       return ecto::OK;
     }
 
@@ -78,6 +84,7 @@ namespace ecto_corrector
 
     //params
     ecto::spore<int> expansion_;
+    ecto::spore<int> binning_;
 
   };
 } //namespace

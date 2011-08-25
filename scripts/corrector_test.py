@@ -43,7 +43,7 @@ if __name__ == "__main__":
     model_loader = ecto_corrector.ModelLoader("Model Loader")
     
     #region of interest
-    roi = ecto_corrector.ModelROI("ROI",expansion=40)
+    roi = ecto_corrector.ModelROI("ROI",expansion=50,binning=2)
     
     #pose correction
     beam_corrector = ecto_corrector.CorrectorXYZ("Beam Corrector",window_half=2,sigma_pixel=5.0)
