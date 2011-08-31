@@ -23,4 +23,7 @@ include_directories(${geometry_msgs_INCLUDES})
 include_directories(${pose_corrector_INCLUDES})
 include_directories(${tabletop_object_detector_INCLUDES})
 
+#TODO: need some way to lookup where ecto_pcl is located
+include_directories(/wg/stor2a/mkrainin/workspace/ecto_kitchen/pcl/include)
+
 add_subdirectory(src)
