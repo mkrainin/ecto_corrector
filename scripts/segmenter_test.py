@@ -22,9 +22,10 @@ if __name__ == "__main__":
     #normals = ecto_pcl.NormalEstimation("Normals", k_search=20, radius_search=0, spatial_locator=ecto_pcl.KDTREE_FLANN)
 
     #segmentation
-    segmenter = ecto_corrector.Segmenter("Segmenter",depth_threshold=0.002,
-                                                     normal_threshold=0.992,
-                                                     curvature_threshold=0.024)
+    segmenter = ecto_corrector.Segmenter("Segmenter",pixel_step=2,
+                                                     depth_threshold=0.0015, #0.0015
+                                                     normal_threshold=0.98, #0.96
+                                                     curvature_threshold=10) #not using curvature threshold
     
     #drawing
     im_drawer = ecto_opencv.highgui.imshow("Drawer",name="segments", waitKey=10)

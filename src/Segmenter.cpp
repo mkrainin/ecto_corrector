@@ -22,6 +22,7 @@ struct Segmenter
 
   static void declare_params(ecto::tendrils& params)
   {
+    params.declare<int>("pixel_step", "number of pixels over to compare to",2);
     params.declare<double>("depth_threshold", "depth difference that constitutes a discontinuity",0.005);
     params.declare<double>("normal_threshold", "max dot product between adjacent normals",0.95);
     params.declare<double>("curvature_threshold", "max curvature",0.04);
@@ -36,6 +37,7 @@ struct Segmenter
   void configure(const ecto::tendrils& params, const ecto::tendrils& inputs, const ecto::tendrils& outputs)
   {
     //params
+    pixel_step_ = params["pixel_step"];
     depth_threshold_ = params["depth_threshold"];
     normal_threshold_ = params["normal_threshold"];
     curvature_threshold_ = params["curvature_threshold"];
@@ -53,7 +55,8 @@ struct Segmenter
 
     std::vector<std::vector<cv::Point2i> > valid_segments;
     std::vector<cv::Point2i> invalid;
-    pose_corrector::segmentCloud(*input,*normals,roi,valid_segments,invalid,*depth_threshold_,*normal_threshold_,*curvature_threshold_);
+    pose_corrector::segmentCloud(*input,*normals,roi,valid_segments,invalid,
+       *pixel_step_,*depth_threshold_,*normal_threshold_,*curvature_threshold_);
 
     *segment_image_ = pose_corrector::visualizeSegments(roi,valid_segments);
 
@@ -61,6 +64,7 @@ struct Segmenter
   }
 
   //params
+  ecto::spore<int> pixel_step_;
   ecto::spore<double> depth_threshold_;
   ecto::spore<double> normal_threshold_;
   ecto::spore<double> curvature_threshold_;
