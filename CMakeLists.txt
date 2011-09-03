@@ -2,10 +2,10 @@ cmake_minimum_required(VERSION 2.8)
 project(ecto_corrector)
 message(STATUS "~~ ${PROJECT_NAME}")
 
-find_package(ecto REQUIRED)
+find_package(ecto REQUIRED) #brings in rosbuild_lite
 #find_package(Boost COMPONENTS signals thread REQUIRED)
 
-include(rosbuild_lite.cmake)
+#include(rosbuild_lite.cmake)
 find_ros_package(pose_corrector)
 if(NOT pose_corrector_FOUND)
   message("**\n** Disabling build of ${PROJECT_NAME} due to missing dependency pose_corrector\n**")

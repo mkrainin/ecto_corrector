@@ -3,9 +3,9 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 ectomodule(ecto_corrector 
   ecto_corrector.cpp
   AddNoise.cpp
+  ApplyROI.cpp
   Corrector.cpp
   DepthEdgeDetector.cpp
-  DetectionSimulator.cpp
   ModelLoader.cpp
   ModelROI.cpp
   ModelVertices.cpp
