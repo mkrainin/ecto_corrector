@@ -11,8 +11,8 @@
 #include <pcl/point_cloud.h>
 #include <opencv2/core/core.hpp>
 
-#include <ecto_pcl.hpp>
-#include <pcl_cell_with_normals.hpp>
+#include <ecto_pcl/ecto_pcl.hpp>
+#include <ecto_pcl/pcl_cell_with_normals.hpp>
 
 namespace ecto_corrector{
 
@@ -51,14 +51,12 @@ struct Segmenter
               boost::shared_ptr<const ::pcl::PointCloud<PointT> >& input,
               boost::shared_ptr<const ::pcl::PointCloud< ::pcl::Normal> >& normals)
   {
-    cv::Rect roi(0,0,input->width,input->height);
-
     std::vector<std::vector<cv::Point2i> > valid_segments;
     std::vector<cv::Point2i> invalid;
-    pose_corrector::segmentCloud(*input,*normals,roi,valid_segments,invalid,
+    pose_corrector::segmentCloud(*input,*normals,valid_segments,invalid,
        *pixel_step_,*depth_threshold_,*normal_threshold_,*curvature_threshold_);
 
-    *segment_image_ = pose_corrector::visualizeSegments(roi,valid_segments);
+    *segment_image_ = pose_corrector::visualizeSegments(input->width,input->height,valid_segments);
 
     return ecto::OK;
   }

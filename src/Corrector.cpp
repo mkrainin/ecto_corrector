@@ -13,11 +13,13 @@
 #include "pcl/point_cloud.h"
 #include "pcl/io/io.h"
 
+#include <ecto_pcl/ecto_pcl.hpp>
+#include <ecto_pcl/pcl_cell.hpp>
+
 namespace ecto_corrector
 {
   using ecto::tendrils;
 
-  template <typename PointT>
   struct Corrector
   {
   public:
@@ -50,8 +52,6 @@ namespace ecto_corrector
           "camera_info", "Camera info for rgb camera (including any ROI info)");
       in.declare<cv::Mat>(
           "depth_edges","Image representing depth discontinuities (sized to ROI)");
-      in.declare<typename pcl::PointCloud<PointT>::ConstPtr >(
-          "cloud","Point Cloud for current sensor frame");
 
       //outputs
       out.declare<geometry_msgs::PoseStamped>(
@@ -65,7 +65,6 @@ namespace ecto_corrector
       model_ = in["model"];
       cam_info_ = in["camera_info"];
       depth_edges_ = in["depth_edges"];
-      cloud_ = in["cloud"];
 
       //outputs
       out_pose_ = out["output_pose"];
@@ -82,7 +81,9 @@ namespace ecto_corrector
 
     }
 
-    int process(const tendrils& in, const tendrils& out)
+    template <typename PointT>
+    int process(const tendrils& in, const tendrils& out,
+                boost::shared_ptr<const ::pcl::PointCloud<PointT> >& input)
     {
       //get initial pose
       tf::Transform init_pose;
@@ -96,7 +97,7 @@ namespace ecto_corrector
       pose_corrector::Corrector corrector;
       model->setBasePose(init_pose);
       corrector.setModel(model);
-      corrector.initCamera(*cam_info_,(*cloud_)->width);
+      corrector.initCamera(*cam_info_,input->width);
 
       pose_corrector::CorrectorParams params;
       params.iterations = *iterations_;
@@ -110,7 +111,7 @@ namespace ecto_corrector
       corrector.setParams(params);
 
       //put the cloud in the right format
-      pcl::PointCloud<PointT> const& cloud_in = **cloud_;
+      pcl::PointCloud<PointT> const& cloud_in = *input;
       pcl::PointCloud<pcl::PointXYZ> cloud;
       // Allocate enough space and copy the basics
       cloud.points.resize (cloud_in.points.size ());
@@ -126,7 +127,9 @@ namespace ecto_corrector
       }
 
       //perform the correction
-      corrector.correct(cloud,*depth_edges_);
+      corrector.correct(cloud,*depth_edges_,
+                        std::vector<std::vector<cv::Point2i> >(), //TODO: take in segmentation
+                        std::vector<cv::Point2i>());
 
       //set output pose
       out_pose_->header = in_pose_->header;
@@ -141,7 +144,6 @@ namespace ecto_corrector
     ecto::spore<boost::shared_ptr<pose_corrector::RigidObjectModel> > model_;
     ecto::spore<sensor_msgs::CameraInfoConstPtr> cam_info_;
     ecto::spore<cv::Mat> depth_edges_;
-    ecto::spore<typename pcl::PointCloud<PointT>::ConstPtr > cloud_;
 
     //outputs
     ecto::spore<geometry_msgs::PoseStamped> out_pose_;
@@ -154,7 +156,5 @@ namespace ecto_corrector
   };
 } //namespace
 
-ECTO_CELL(ecto_corrector, ecto_corrector::Corrector<pcl::PointXYZ>, "CorrectorXYZ", "Performs pose refinement for rigid objects."
-    " Does pose correction only; cloud conversion, depth edges, ROI computation, etc. are left to other cells");
-ECTO_CELL(ecto_corrector, ecto_corrector::Corrector<pcl::PointXYZRGB>, "CorrectorXYZRGB", "Performs pose refinement for rigid objects."
+ECTO_CELL(ecto_corrector, pcl::PclCell<ecto_corrector::Corrector>, "Corrector", "Performs pose refinement for rigid objects."
     " Does pose correction only; cloud conversion, depth edges, ROI computation, etc. are left to other cells");
