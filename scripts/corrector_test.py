@@ -31,7 +31,9 @@ if __name__ == "__main__":
     sub_info = ecto_sensor_msgs.Subscriber_CameraInfo("Cam Info Subscriber",
                                         topic_name="/camera/rgb/camera_info")
     msg2cloud = ecto_pcl_ros.Message2PointCloud("Cloud2 To Type-Erased",
-                                        format=ecto_pcl.XYZ)
+                                        format=ecto_pcl.XYZRGB)
+    cloud2typed = ecto_pcl.PointCloud2PointCloudT("Type-Erased To XYZRGB",
+                                                  format=ecto_pcl.XYZRGB)
     
     #artificial noise
     noise_adder = ecto_corrector.AddNoise("Noise Adder",
@@ -55,6 +57,7 @@ if __name__ == "__main__":
     sub_graph = [
         #conversion    
         sub_cloud[:]                >> msg2cloud[:],
+        apply_roi[:]                >> cloud2typed[:],
         
         #artificial noise
         model_loader[:]             >> noise_adder["model"],
@@ -74,14 +77,14 @@ if __name__ == "__main__":
 #        model_loader["model"]       >> beam_corrector["model"],
 #        roi["out_camera_info"]      >> beam_corrector["camera_info"],
 #        edge_detector["depth_edges"]>> beam_corrector["depth_edges"],
-#        apply_roi[:]                >> beam_corrector["input"],            
+#        cloud2typed[:]              >> beam_corrector["input"],            
         
         #icp correction
         noise_adder["out_pose"]     >> icp_corrector["input_pose"],
         model_loader["model"]       >> icp_corrector["model"],
         roi["out_camera_info"]      >> icp_corrector["camera_info"],
         edge_detector["depth_edges"]>> icp_corrector["depth_edges"],
-        apply_roi[:]                >> icp_corrector["input"],      
+        cloud2typed[:]              >> icp_corrector["input"],      
     ]
     
     if visualize:

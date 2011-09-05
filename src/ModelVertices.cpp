@@ -40,7 +40,7 @@ namespace ecto_corrector
     int process(const tendrils& in, const tendrils& out)
     {
       //get cloud
-      pcl::PointCloud<pcl::PointXYZ>::Ptr cloud = (*model_)->getVertexCloud();
+      pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud = (*model_)->getVertexCloud();
 
       //transform
       geometry_msgs::Point t = pose_->pose.position;
