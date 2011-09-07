@@ -90,8 +90,8 @@ namespace ecto_corrector
       tf::poseMsgToTF(in_pose_->pose,init_pose);
 
       //copy the model so there are no issues with others trying to set pose
-      boost::shared_ptr<pose_corrector::RigidObjectModel> model(new pose_corrector::RigidObjectModel());
-      *model = **model_;
+      boost::shared_ptr<pose_corrector::RigidObjectModel> model(
+          new pose_corrector::RigidObjectModel(**model_));
 
       //set up and run corrector
       pose_corrector::Corrector corrector;
