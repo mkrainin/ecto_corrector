@@ -3,7 +3,7 @@
 import ecto, ecto_ros
 from ecto_openni import Capture, ResolutionMode, Device
 from ecto_pcl import NiConverter, NormalEstimation, KDTREE_ORGANIZED_INDEX
-from ecto_corrector import Segmenter
+from ecto_corrector import Segmenter, SegmentsToMat
 from ecto_opencv.highgui import imshow
 
 import sys
@@ -28,16 +28,22 @@ normals = NormalEstimation("Normals", k_search=0, radius_search=0.006,
 graph +=    [   cloud_generator[:]  >> normals[:]   ]
 
 #segmentation
-segmenter = Segmenter("Segmenter",pixel_step=2,
+segmenter = Segmenter("Segmenter",pixel_step=3,
                       depth_threshold=0.0015, #0.0015
                       normal_threshold=0.98, #0.96
-                      curvature_threshold=10) #not using curvature threshold
+                      curvature_threshold=10, #not using curvature threshold
+                      max_depth = 0.9)
+
 graph +=    [   cloud_generator[:]  >> segmenter["input"],
                 normals[:]          >> segmenter["normals"],    ]
 
 #drawing
+seg2mat = SegmentsToMat("Seg2Mat",min_size=10)
 im_drawer = imshow("Drawer",name="segments", waitKey=10)
-graph +=    [   segmenter[:]        >> im_drawer[:] ]
+graph +=    [   segmenter["valid_segments"] >> seg2mat["segments"],
+                cloud_generator[:]          >> seg2mat["input"],
+                seg2mat[:]                  >>  im_drawer[:],
+             ]
 
 
 plasm = ecto.Plasm()

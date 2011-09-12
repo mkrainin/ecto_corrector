@@ -26,12 +26,19 @@ struct Segmenter
     params.declare<double>("depth_threshold", "depth difference that constitutes a discontinuity",0.005);
     params.declare<double>("normal_threshold", "max dot product between adjacent normals",0.95);
     params.declare<double>("curvature_threshold", "max curvature",0.04);
+    params.declare<double>("max_depth","max depth to bother segmenting",2.0);
   }
 
   static void declare_io(const ecto::tendrils& params, ecto::tendrils& inputs, ecto::tendrils& outputs)
   {
+    //inputs handled by PclCellWithNormals
+
     //output
-    outputs.declare<cv::Mat> ("segment_image", "Image showing the resulting segments in different colors");
+    outputs.declare<std::vector<std::vector<cv::Point2i> > > ("valid_segments",
+           "Segments as vectors of pixel indices. Every valid pixel within "\
+           "max_depth will be in exactly one of these");
+    outputs.declare<std::vector<cv::Point2i> >("invalid", "Pixel indices for "\
+           "pixels with either invalid readings or beyond max_depth");
   }
 
   void configure(const ecto::tendrils& params, const ecto::tendrils& inputs, const ecto::tendrils& outputs)
@@ -41,9 +48,11 @@ struct Segmenter
     depth_threshold_ = params["depth_threshold"];
     normal_threshold_ = params["normal_threshold"];
     curvature_threshold_ = params["curvature_threshold"];
+    max_depth_ = params["max_depth"];
 
     //output
-    segment_image_ = outputs["segment_image"];
+    valid_segments_ = outputs["valid_segments"];
+    invalid_ = outputs["invalid"];
   }
 
   template <typename PointT>
@@ -51,12 +60,9 @@ struct Segmenter
               boost::shared_ptr<const ::pcl::PointCloud<PointT> >& input,
               boost::shared_ptr<const ::pcl::PointCloud< ::pcl::Normal> >& normals)
   {
-    std::vector<std::vector<cv::Point2i> > valid_segments;
-    std::vector<cv::Point2i> invalid;
-    pose_corrector::segmentCloud(*input,*normals,valid_segments,invalid,
-       *pixel_step_,*depth_threshold_,*normal_threshold_,*curvature_threshold_);
-
-    *segment_image_ = pose_corrector::visualizeSegments(input->width,input->height,valid_segments);
+    pose_corrector::segmentCloud(*input,*normals,*valid_segments_,*invalid_,
+       *pixel_step_,*depth_threshold_,*normal_threshold_,*curvature_threshold_,
+       *max_depth_);
 
     return ecto::OK;
   }
@@ -66,10 +72,11 @@ struct Segmenter
   ecto::spore<double> depth_threshold_;
   ecto::spore<double> normal_threshold_;
   ecto::spore<double> curvature_threshold_;
+  ecto::spore<double> max_depth_;
 
   //outputs
-  ecto::spore<cv::Mat> segment_image_;
-
+  ecto::spore<std::vector<std::vector<cv::Point2i> > > valid_segments_;
+  ecto::spore<std::vector<cv::Point2i> > invalid_;
 };
 
 }

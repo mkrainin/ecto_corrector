@@ -10,6 +10,7 @@ ectomodule(ecto_corrector
   ModelROI.cpp
   ModelVertices.cpp
   Segmenter.cpp
+  SegmentsToMat.cpp
   TODServiceCaller.cpp
   TranslationOffset.cpp
   )
