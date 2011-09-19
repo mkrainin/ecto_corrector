@@ -6,6 +6,8 @@ find_package(ecto REQUIRED) #brings in rosbuild_lite
 #find_package(Boost COMPONENTS signals thread REQUIRED)
 
 #include(rosbuild_lite.cmake)
+
+rosbuild_lite_init() # found in rosbuild_lite
 find_ros_package(pose_corrector)
 if(NOT pose_corrector_FOUND)
   message("**\n** Disabling build of ${PROJECT_NAME} due to missing dependency pose_corrector\n**")
