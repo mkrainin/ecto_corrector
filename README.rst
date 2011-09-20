@@ -20,12 +20,12 @@ You must also have ecto (https://github.com/plasmodic/ecto) and ecto_pcl
 (https://github.com/plasmodic/ecto_pcl). The recommended method for getting 
 these dependencies is through ecto_kitchen (https://github.com/plasmodic/ecto_kitchen).
 
-Example instructions for building ecto_corrector:
-| cd ecto_corrector
-| mkdir build
-| cd build
-| cmake .. -Decto_DIR=~/ecto_kitchen/build -Decto_pcl_INCLUDES=~/ecto_kitchen/pcl/include
-| make -j4
+| Example instructions for building ecto_corrector:
+|  cd ecto_corrector
+|  mkdir build
+|  cd build
+|  cmake .. -Decto_DIR=~/ecto_kitchen/build -Decto_pcl_INCLUDES=~/ecto_kitchen/pcl/include
+|  make -j4
 
 Running example programs in the scripts directory:
 ----------------------------------------
