@@ -25,7 +25,10 @@ include_directories(${geometry_msgs_INCLUDES})
 include_directories(${pose_corrector_INCLUDES})
 include_directories(${tabletop_object_detector_INCLUDES})
 
-#TODO: need some way to lookup where ecto_pcl is located
-include_directories(/wg/stor2a/mkrainin/workspace/ecto_kitchen/pcl/include)
+#TODO: some way to detect this automatically rather than requiring it as an argument?
+if(NOT ecto_pcl_INCLUDES)
+  message("**\n\n** Need to know where ecto_pcl includes are. Use option -Decto_pcl_INCLUDES=<directory>\n\n**")   
+endif()
+include_directories(${ecto_pcl_INCLUDES})
 
 add_subdirectory(src)
