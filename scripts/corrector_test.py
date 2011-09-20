@@ -11,8 +11,12 @@ import math
 visualize = True
 debug_graphs = True
 dir = "/wg/stor2a/mkrainin/object_data/perception challenge/object_meshes"
+#noise
 rotation = 10*math.pi/180
 translation = 0.03
+#optimization params
+use_icp = False  #uses sensor model instead if false
+restarts = 10
 
 if __name__ == "__main__":
     node_name = "corrector_test"
@@ -38,21 +42,19 @@ if __name__ == "__main__":
     #artificial noise
     noise_adder = ecto_corrector.AddNoise("Noise Adder",
                                     rotation=rotation,translation=translation)
-
-    #edge detection
-    edge_detector = ecto_corrector.DepthEdgeDetector("Edge Detector",
-                            depth_threshold=0.02, erode_size=3,open_size=3)
     
     #model loading
     model_loader = ecto_corrector.ModelLoader("Model Loader")
     
     #region of interest
-    roi = ecto_corrector.ModelROI("ROI",expansion=50,binning=2)
+    roi = ecto_corrector.ModelROI("ROI",expansion=70,binning=2)
     apply_roi = ecto_corrector.ApplyROI("Apply ROI")
     
     #pose correction
-#    beam_corrector = ecto_corrector.Corrector("Beam Corrector",window_half=2,sigma_pixel=5.0)
-    icp_corrector = ecto_corrector.Corrector("ICP Corrector",use_icp=True,use_sensor_model=False)
+    corrector = ecto_corrector.Corrector("Corrector",
+        use_icp=use_icp,use_sensor_model=(not use_icp),
+        restarts=restarts,iterations=(8 if use_icp else 4),
+        inner_loops=8, window_half=1)
     
     sub_graph = [
         #conversion    
@@ -67,44 +69,67 @@ if __name__ == "__main__":
         model_loader[:]             >> roi["model"],
         sub_info[:]                 >> roi["in_camera_info"],
         roi[:]                      >> apply_roi["info"],
-        msg2cloud[:]                >> apply_roi["input"],
-    
-        #edge detection
-        apply_roi[:]                >> edge_detector[:],                      
-             
-        #beam correction
-#        noise_adder["out_pose"]     >> beam_corrector["input_pose"],
-#        model_loader["model"]       >> beam_corrector["model"],
-#        roi["out_camera_info"]      >> beam_corrector["camera_info"],
-#        edge_detector["depth_edges"]>> beam_corrector["depth_edges"],
-#        cloud2typed[:]              >> beam_corrector["input"],            
+        msg2cloud[:]                >> apply_roi["input"],           
         
         #icp correction
-        noise_adder["out_pose"]     >> icp_corrector["input_pose"],
-        model_loader["model"]       >> icp_corrector["model"],
-        roi["out_camera_info"]      >> icp_corrector["camera_info"],
-        edge_detector["depth_edges"]>> icp_corrector["depth_edges"],
-        cloud2typed[:]              >> icp_corrector["input"],      
+        noise_adder["out_pose"]     >> corrector["input_pose"],
+        model_loader["model"]       >> corrector["model"],
+        roi["out_camera_info"]      >> corrector["camera_info"],
+        cloud2typed[:]              >> corrector["input"],      
     ]
+    
+    if use_icp:
+        #edge detection for boundary correspondence removal
+        edge_detector = ecto_corrector.DepthEdgeDetector("Edge Detector",
+                        depth_threshold=0.02, erode_size=3,open_size=3)
+        sub_graph += [
+            apply_roi[:]                >> edge_detector[:],    
+            edge_detector["depth_edges"]>> corrector["depth_edges"], 
+        ]
+        
+    if restarts > 0:
+        #normals
+        normals = ecto_pcl.NormalEstimation("Normals", k_search=0, radius_search=0.006,
+                                   spatial_locator=ecto_pcl.KDTREE_ORGANIZED_INDEX)
+        sub_graph +=    [   apply_roi[:]  >> normals[:]   ]
+        
+        #segmentation for SEGMENTATION_SENSOR_MODEL restart comparison
+        segmenter = ecto_corrector.Segmenter("Segmenter",pixel_step=2,
+                      depth_threshold=0.0015,
+                      normal_threshold=0.99,
+                      curvature_threshold=10, #not using curvature threshold
+                      max_depth = 1.5)
+
+        sub_graph +=    [   apply_roi[:]  >> segmenter["input"],
+                        normals[:]    >> segmenter["normals"], 
+                        segmenter["valid_segments"] >> corrector["valid_segments"],
+                        segmenter["invalid"] >> corrector["invalid"],   ]
     
     if visualize:
         pre_correct_vertices = VerticesPubModule(sub_plasm,node_name+"/pre_correct")
-#        post_beam_vertices = VerticesPubModule(sub_plasm,node_name+"/post_beam")
-        post_icp_vertices = VerticesPubModule(sub_plasm,node_name+"/post_icp")
+        post_correct_vertices = VerticesPubModule(sub_plasm,node_name+"/post_correct")
         
         sub_graph += [
             #pre-correct visualization
             noise_adder["out_pose"]     >> pre_correct_vertices["pose"],
             model_loader["model"]       >> pre_correct_vertices["model"],
                       
-            #beam-correct visualization
-#           beam_corrector["output_pose"]>> post_beam_vertices["pose"],
-#           model_loader["model"]        >> post_beam_vertices["model"],    
-                      
             #icp-correct visualization
-            icp_corrector["output_pose"]>> post_icp_vertices["pose"],
-            model_loader["model"]       >> post_icp_vertices["model"],            
+            corrector["output_pose"]    >> post_correct_vertices["pose"],
+            model_loader["model"]       >> post_correct_vertices["model"],            
         ]
+        
+        if use_icp:
+            depth_drawer = ecto_opencv.highgui.imshow("Drawer",name="depth edges", waitKey=10)
+            sub_graph += [edge_detector[:] >> depth_drawer[:]]
+            
+        if restarts > 0:
+            seg2mat = ecto_corrector.SegmentsToMat("Seg2Mat",min_size=10)
+            seg_drawer = ecto_opencv.highgui.imshow("Drawer",name="segments", waitKey=10)
+            sub_graph +=    [   segmenter["valid_segments"] >> seg2mat["segments"],
+                apply_roi[:]          >> seg2mat["input"],
+                seg2mat[:]            >>  seg_drawer[:],
+             ]
 
     sub_plasm.connect(sub_graph)
     if(debug_graphs):
@@ -137,7 +162,7 @@ if __name__ == "__main__":
     main_graph = [                  
         #display
         sub_image[:]    >>  img2mat[:],    
-        img2mat[:]      >>  show["input"],
+        img2mat[:]      >>  show[:],
         
         #triggering
         show["d_key"]               >>  (tod_detector_if["__test__"],trigger_and["in1"]),
